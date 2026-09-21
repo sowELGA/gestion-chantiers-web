@@ -1,0 +1,165 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
+@theme {
+  --color-primary: #1c9f93;
+  --color-secondary: #d4af37;
+  --color-accent: #0b7d6f;
+  --color-lightbg: #f8fafc;
+  --color-muted: #64748b;
+
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono-tag: "JetBrains Mono", ui-monospace, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Grille "plan technique" du panneau gauche de connexion */
+.blueprint-grid {
+  background-color: #0c2b29;
+  background-image:
+    linear-gradient(rgba(226, 250, 245, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 250, 245, 0.5) 1px, transparent 1px),
+    linear-gradient(rgba(226, 250, 245, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 250, 245, 0.16) 1px, transparent 1px);
+  background-size:
+    96px 96px,
+    96px 96px,
+    24px 24px,
+    24px 24px;
+  background-position: -1px -1px;
+}
+
+/* Petites marques d'angle sur la carte du formulaire */
+.plan-card {
+  position: relative;
+}
+
+.plan-card .tick {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.plan-card .tick-tl {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--color-primary);
+  border-left: 2px solid var(--color-primary);
+}
+.plan-card .tick-tr {
+  top: -1px;
+  right: -1px;
+  border-top: 2px solid var(--color-primary);
+  border-right: 2px solid var(--color-primary);
+}
+.plan-card .tick-bl {
+  bottom: -1px;
+  left: -1px;
+  border-bottom: 2px solid var(--color-primary);
+  border-left: 2px solid var(--color-primary);
+}
+.plan-card .tick-br {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--color-primary);
+  border-right: 2px solid var(--color-primary);
+}
+
+/* Trait "cote" sous les titres */
+.dim-rule {
+  position: relative;
+  height: 1px;
+  background: rgba(15, 156, 138, 0.35);
+}
+
+.dim-rule::before,
+.dim-rule::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 7px;
+  background: rgba(15, 156, 138, 0.55);
+}
+
+.dim-rule::before {
+  left: 0;
+}
+.dim-rule::after {
+  right: 0;
+}
+
+/* Animation de dessin de la grue en SVG */
+.rig-path {
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+  animation: draw 2.4s ease-out forwards 0.2s;
+}
+
+.sidebar-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.dim-rule-dark {
+  position: relative;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.dim-rule-dark::before,
+.dim-rule-dark::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  width: 1px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.25);
+}
+.dim-rule-dark::before {
+  left: 0;
+}
+.dim-rule-dark::after {
+  right: 0;
+}
+
+.tick-card {
+  position: relative;
+}
+.tick-card .tick {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+.tick-card .tick-tl {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid #1c9f93;
+  border-left: 2px solid #1c9f93;
+}
+.tick-card .tick-br {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid #1c9f93;
+  border-right: 2px solid #1c9f93;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rig-path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
