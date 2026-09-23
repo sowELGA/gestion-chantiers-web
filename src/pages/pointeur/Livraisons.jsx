@@ -5,7 +5,6 @@ import LivraisonCard from "./components/LivraisonCard";
 
 export default function Livraisons() {
   const { setPageHeader } = usePageHeader();
-  const [chantier, setChantier] = useState(null);
   const [livraisons, setLivraisons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [successBon, setSuccessBon] = useState(null);
@@ -15,7 +14,6 @@ export default function Livraisons() {
     receptionApi
       .livraisons()
       .then((res) => {
-        setChantier(res.data.chantier);
         setLivraisons(res.data.livraisons);
         setPageHeader("Livraisons en cours", res.data.chantier.nomChantier);
       })

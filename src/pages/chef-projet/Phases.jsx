@@ -111,9 +111,6 @@ export default function Phases() {
     );
 
   const totalPhases = phases.length;
-  const phasesTerminees = phases.filter(
-    (p) => p.statutPhase === "terminee",
-  ).length;
   const phasesEnCours = phases.filter(
     (p) => p.statutPhase === "en_cours",
   ).length;

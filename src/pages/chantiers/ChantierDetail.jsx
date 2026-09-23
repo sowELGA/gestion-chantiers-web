@@ -99,29 +99,6 @@ export default function ChantierDetail() {
     }
   };
 
-  const handleDelete = async (chantier, confirmer = false) => {
-    if (
-      !confirmer &&
-      !confirm(`Supprimer le chantier "${chantier.nomChantier}" ?`)
-    )
-      return;
-    try {
-      await chantiersApi.remove(chantier.id, confirmer);
-      load();
-    } catch (err) {
-      if (
-        err.response?.status === 409 &&
-        err.response.data.confirmation_requise
-      ) {
-        if (confirm(err.response.data.message)) {
-          handleDelete(chantier, true);
-        }
-        return;
-      }
-      alert(err.response?.data?.message || "Suppression impossible.");
-    }
-  };
-
   const handleEditSubmit = async (formData) => {
     setEditSubmitting(true);
     setEditErrors({});

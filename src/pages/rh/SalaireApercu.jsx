@@ -5,8 +5,8 @@ import { usePageHeader } from "../../context/PageHeaderContext";
 import { formatMontant } from '../../utils/format'
 
 function fmtDateCourt(v) {
-  const [y, m, d] = v.split("-");
-  return `${d}/${m}`;
+  const [, m, d] = v.split('-')
+  return `${d}/${m}`
 }
 
 export default function SalaireApercu() {

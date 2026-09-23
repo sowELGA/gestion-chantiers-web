@@ -20,6 +20,7 @@ export function PageHeaderProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePageHeader() {
   const context = useContext(PageHeaderContext);
   if (!context)
