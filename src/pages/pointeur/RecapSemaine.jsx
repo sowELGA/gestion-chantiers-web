@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { pointageApi } from "../../api/pointage";
 import { usePageHeader } from "../../context/PageHeaderContext";
 import Pagination from "../../components/Pagination";
+import { useSearchParams } from "react-router-dom";
 
 const STATUT_CONFIG = {
   en_attente: ["En attente de soumission", "bg-slate-100 text-slate-600"],
@@ -33,6 +34,7 @@ export default function RecapSemaine() {
   const [loading, setLoading] = useState(true); // chargement initial complet (toute la page)
   const [tableLoading, setTableLoading] = useState(false); // chargement léger (juste le tableau)
   const [submitting, setSubmitting] = useState(false);
+  const [searchParams] = useSearchParams();
 
   const load = useCallback(
     (params = {}) => {
@@ -53,8 +55,15 @@ export default function RecapSemaine() {
   );
 
   useEffect(() => {
-    load();
-  }, [load]);
+    const params = searchParams.get("semaine")
+      ? {
+          semaine: searchParams.get("semaine"),
+          annee: searchParams.get("annee"),
+        }
+      : {};
+    load(params);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handlePageChange = (page) => {
     setTableLoading(true);

@@ -84,7 +84,8 @@ export default function PointeurDashboard() {
     );
   }
 
-  const { chantier, fiche_jour, recap, livraisons, today } = data;
+  const { chantier, fiche_jour, recap, semaines_rejetees, livraisons, today } =
+    data;
   const [sLabel, sColor] = STATUT_CHANTIER[chantier.statut] ?? [
     "—",
     "bg-slate-400",
@@ -101,6 +102,59 @@ export default function PointeurDashboard() {
 
   return (
     <div className="space-y-6">
+      {semaines_rejetees.length > 0 && (
+        <div className="bg-red-50 border-2 border-red-300 rounded-xl p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-red-700 text-sm">
+                {semaines_rejetees.length > 1
+                  ? `${semaines_rejetees.length} fiches rejetées à corriger`
+                  : "Une fiche a été rejetée — correction requise"}
+              </p>
+              <div className="mt-3 space-y-2">
+                {semaines_rejetees.map((s) => (
+                  <div
+                    key={`${s.semaine}-${s.annee}`}
+                    className="bg-white border border-red-200 rounded-lg px-4 py-3 flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[#0F172A]">
+                        {s.label}
+                      </p>
+                      {s.motif_rejet && (
+                        <p className="text-xs text-red-500 mt-0.5 italic truncate">
+                          "{s.motif_rejet}"
+                        </p>
+                      )}
+                    </div>
+                    <Link
+                      to={`/pointeur/pointage/recap?semaine=${s.semaine}&annee=${s.annee}`}
+                      className="flex-shrink-0 px-4 py-2 bg-red-500 text-white text-xs font-semibold rounded-lg hover:bg-red-600 transition-colors"
+                    >
+                      Corriger maintenant
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="bg-[#0F3D37] rounded-xl p-6 flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-[#1C9F93]/20 rounded-xl flex items-center justify-center flex-shrink-0">

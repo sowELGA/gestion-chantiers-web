@@ -45,6 +45,24 @@ export default function ApprovisionnementsHistorique() {
     [filters],
   );
 
+  const RACCOURCIS = [
+    { label: "Aujourd'hui", debut: today, fin: today },
+    { label: "Ce mois", debut: debutMois, fin: today },
+    {
+      label: "3 mois",
+      debut: new Date(new Date().setMonth(new Date().getMonth() - 3))
+        .toISOString()
+        .slice(0, 10),
+      fin: today,
+    },
+    { label: "Tout", debut: "2020-01-01", fin: today },
+  ];
+  const applyRaccourci = (r) => {
+    const f = { date_debut: r.debut, date_fin: r.fin };
+    setFilters(f);
+    load(f);
+  };
+
   useEffect(() => {
     load();
   }, [load]);
@@ -101,6 +119,18 @@ export default function ApprovisionnementsHistorique() {
           >
             Filtrer
           </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {RACCOURCIS.map((r) => (
+              <button
+                key={r.label}
+                type="button"
+                onClick={() => applyRaccourci(r)}
+                className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${filters.date_debut === r.debut && filters.date_fin === r.fin ? "bg-[#1C9F93] text-white border-[#1C9F93]" : "border-slate-300 text-slate-500 hover:border-[#1C9F93] hover:text-[#1C9F93]"}`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
         </form>
       </div>
 
