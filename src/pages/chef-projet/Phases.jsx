@@ -141,12 +141,6 @@ export default function Phases() {
             + Nouvelle phase
           </button>
         )}
-        <Link
-          to={`/mes-chantiers/${chantierId}/recap`}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
-        >
-          Validation des pointages
-        </Link>
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
