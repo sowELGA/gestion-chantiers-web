@@ -13,6 +13,7 @@ export default function UserSection({
   onEdit,
   onReset,
   onToggle,
+  onDelete,
 }) {
   if (users.length === 0) return null;
 
@@ -31,6 +32,7 @@ export default function UserSection({
             onEdit={onEdit}
             onReset={onReset}
             onToggle={onToggle}
+            onDelete={onDelete}
           />
         ))}
       </div>

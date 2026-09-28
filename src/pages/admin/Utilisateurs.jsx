@@ -152,6 +152,25 @@ export default function Utilisateurs() {
     });
   };
 
+  const handleDelete = async (user) => {
+    if (
+      !confirm(
+        `Supprimer définitivement ${user.nomComplet} ? Cette action est irréversible.`,
+      )
+    )
+      return;
+    try {
+      await usersApi.delete(user.id);
+      setNotification({
+        type: "suppression",
+        texte: `Le compte de ${user.nomComplet} a été supprimé.`,
+      });
+      loadAll();
+    } catch (err) {
+      alert(err.response?.data?.message ?? "Une erreur est survenue.");
+    }
+  };
+
   const handleResoudreDemande = async (demande) => {
     await demandesResetApi.resoudre(demande.id);
     setNotification({
@@ -303,6 +322,7 @@ export default function Utilisateurs() {
             onEdit={openEditModal}
             onReset={handleReset}
             onToggle={handleToggle}
+            onDelete={handleDelete}
           />
           <UserSection
             title="Chefs de projet"
@@ -311,6 +331,7 @@ export default function Utilisateurs() {
             onEdit={openEditModal}
             onReset={handleReset}
             onToggle={handleToggle}
+            onDelete={handleDelete}
           />
           <UserSection
             title="Pointeurs"
@@ -319,6 +340,7 @@ export default function Utilisateurs() {
             onEdit={openEditModal}
             onReset={handleReset}
             onToggle={handleToggle}
+            onDelete={handleDelete}
           />
         </>
       )}
