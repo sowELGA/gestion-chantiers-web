@@ -20,7 +20,7 @@ export function AuthProvider({ children }) {
 
   // Au premier chargement de l'app : si un token existe, on vérifie qu'il est toujours valide
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     if (!token) {
       setLoading(false);
@@ -33,8 +33,8 @@ export function AuthProvider({ children }) {
         setUser(normalizeUser(res.data));
       })
       .catch(() => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("user");
         setUser(null);
       })
       .finally(() => setLoading(false));
@@ -47,7 +47,7 @@ export function AuthProvider({ children }) {
       const { token, user: userPayload } = res.data;
       const loggedUser = normalizeUser(userPayload);
 
-      localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
       setUser(loggedUser);
 
       return { success: true, user: loggedUser };
@@ -67,7 +67,7 @@ export function AuthProvider({ children }) {
     } catch {
       // même si l'appel échoue (token déjà expiré côté serveur), on nettoie côté client
     } finally {
-      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       setUser(null);
     }
   }, []);
