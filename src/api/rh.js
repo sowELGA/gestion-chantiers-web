@@ -2,6 +2,8 @@ import api from "./axios";
 
 export const ouvriersApi = {
   list: (filters = {}) => api.get("/rh/ouvriers", { params: filters }),
+  postesDisponibles: (chantierId) =>
+    api.get(`/rh/ouvriers/postes-disponibles/${chantierId}`),
   formOptions: () => api.get("/rh/ouvriers/form-options"),
   create: (data) => api.post("/rh/ouvriers", data),
   update: (id, data) => api.put(`/rh/ouvriers/${id}`, data),

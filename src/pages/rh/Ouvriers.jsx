@@ -3,6 +3,8 @@ import { ouvriersApi } from "../../api/rh";
 import { usePageHeader } from "../../context/PageHeaderContext";
 import Modal from "../../components/Modal";
 import OuvrierForm from "./components/OuvrierForm";
+import { postesApi } from "../../api/rh";
+import PosteAutocomplete from "../../components/PosteAutocomplete";
 
 export default function Ouvriers() {
   const { setPageHeader } = usePageHeader();
@@ -15,15 +17,16 @@ export default function Ouvriers() {
     total: 0,
   });
   const [stats, setStats] = useState({ total: 0, actifs: 0, inactifs: 0 });
-  const [postes, setPostes] = useState([]);
   const [chantiers, setChantiers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState({
     recherche: "",
     chantier_id: "",
+    poste_id: "",
     statut: "tous",
   });
+  const [tousLesPostes, setTousLesPostes] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -55,9 +58,9 @@ export default function Ouvriers() {
   useEffect(() => {
     load();
     ouvriersApi.formOptions().then((res) => {
-      setPostes(res.data.postes);
       setChantiers(res.data.chantiers);
     });
+    postesApi.list().then((res) => setTousLesPostes(res.data));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -66,7 +69,7 @@ export default function Ouvriers() {
     load(filters);
   };
   const resetFilters = () => {
-    const f = { recherche: "", chantier_id: "", statut: "tous" };
+    const f = { recherche: "", chantier_id: "", poste_id: "", statut: "tous" };
     setFilters(f);
     load(f);
   };
@@ -122,7 +125,10 @@ export default function Ouvriers() {
   };
 
   const hasFilters =
-    filters.recherche || filters.chantier_id || filters.statut !== "tous";
+    filters.recherche ||
+    filters.chantier_id ||
+    filters.poste_id ||
+    filters.statut !== "tous";
 
   return (
     <>
@@ -194,6 +200,22 @@ export default function Ouvriers() {
                 </option>
               ))}
             </select>
+          </div>
+          <div className="w-full md:w-56">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+              Poste
+            </label>
+            <PosteAutocomplete
+              options={tousLesPostes}
+              value={filters.poste_id}
+              onChange={(id) => {
+                const f = { ...filters, poste_id: id };
+                setFilters(f);
+                load(f);
+              }}
+              placeholder="Tous les postes"
+              emptyMessage="Aucun poste ne correspond"
+            />
           </div>
           <div className="w-full md:w-auto">
             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
@@ -466,7 +488,6 @@ export default function Ouvriers() {
       >
         <OuvrierForm
           initialData={editing}
-          postes={postes}
           chantiers={chantiers}
           onSubmit={handleSubmit}
           onCancel={() => setModalOpen(false)}
