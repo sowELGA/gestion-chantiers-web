@@ -27,12 +27,14 @@ export default function ModifierJour() {
           }),
         );
         const init = {};
-        res.data.personnel.forEach((p) => {
-          init[p.id] = {
-            statutPointage: p.statutPointage,
-            heures_sup: p.heures_sup,
-          };
-        });
+        res.data.groupes.forEach((g) =>
+          g.personnel.forEach((p) => {
+            init[p.id] = {
+              statutPointage: p.statutPointage,
+              heures_sup: p.heures_sup,
+            };
+          }),
+        );
         setLignes(init);
       })
       .catch((err) => setError(err.response?.data?.message || "Erreur"))
@@ -107,48 +109,64 @@ export default function ModifierJour() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-4">
-        <div className="divide-y divide-slate-100">
-          {data.personnel.map((p) => {
-            const ligne = lignes[p.id];
-            const isPresent = ligne?.statutPointage === "present";
-            return (
-              <div
-                key={p.id}
-                className="flex items-center justify-between gap-4 px-6 py-4"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-[#0F172A]">
-                    {p.nomComplet}
-                  </p>
-                  <p className="text-xs text-slate-400">{p.poste}</p>
-                </div>
-                <div className="flex items-center gap-4 flex-shrink-0">
-                  {isPresent && (
-                    <div className="flex items-center gap-1.5">
-                      <label className="text-xs text-slate-400">H. sup</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="12"
-                        value={ligne.heures_sup}
-                        onChange={(e) => updateHeuresSup(p.id, e.target.value)}
-                        className="w-16 px-2 py-1 border border-slate-200 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30"
-                      />
-                    </div>
-                  )}
-                  <button
-                    onClick={() => toggleStatut(p.id)}
-                    className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${isPresent ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-slate-100 text-slate-500 border border-slate-200"}`}
+      <div className="space-y-4 mt-4">
+        {data.groupes.map((groupe) => (
+          <div
+            key={groupe.famille}
+            className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
+          >
+            <div className="px-6 py-2.5 bg-slate-50 border-b border-slate-100">
+              <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wide">
+                {groupe.famille}
+              </h3>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {groupe.personnel.map((p) => {
+                const ligne = lignes[p.id];
+                const isPresent = ligne?.statutPointage === "present";
+                return (
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between gap-4 px-6 py-4"
                   >
-                    {isPresent ? "Présent" : "Absent"}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end">
+                    <div>
+                      <p className="text-sm font-semibold text-[#0F172A]">
+                        {p.nomComplet}
+                      </p>
+                      <p className="text-xs text-slate-400">{p.poste}</p>
+                    </div>
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      {isPresent && (
+                        <div className="flex items-center gap-1.5">
+                          <label className="text-xs text-slate-400">
+                            H. sup
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="12"
+                            value={ligne.heures_sup}
+                            onChange={(e) =>
+                              updateHeuresSup(p.id, e.target.value)
+                            }
+                            className="w-16 px-2 py-1 border border-slate-200 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-[#1C9F93]/30"
+                          />
+                        </div>
+                      )}
+                      <button
+                        onClick={() => toggleStatut(p.id)}
+                        className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${isPresent ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-slate-100 text-slate-500 border border-slate-200"}`}
+                      >
+                        {isPresent ? "Présent" : "Absent"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 px-6 py-4 flex justify-end">
           <button
             onClick={handleSubmit}
             disabled={submitting}

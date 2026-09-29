@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { pointageApi } from "../../api/pointage";
 import { usePageHeader } from "../../context/PageHeaderContext";
@@ -30,14 +30,16 @@ export default function FicheJour() {
           }),
         );
         const init = {};
-        res.data.personnel.forEach((p) => {
-          init[p.id] = {
-            statutPointage: p.statutPointage,
-            heures_sup: p.heures_sup,
-          };
-        });
+        res.data.groupes.forEach((g) =>
+          g.personnel.forEach((p) => {
+            init[p.id] = {
+              statutPointage: p.statutPointage,
+              heures_sup: p.heures_sup,
+            };
+          }),
+        );
         setLignes(init);
-        setGroupesOuverts({})
+        setGroupesOuverts({});
       })
       .catch((err) => {
         if (err.response?.status === 423) setBloque(err.response.data.message);
@@ -123,24 +125,8 @@ export default function FicheJour() {
   const compter = (statut) =>
     Object.values(lignes).filter((l) => l.statutPointage === statut).length;
 
-  // ── Groupement par poste (comme l'ancien Blade : "Chef X" en premier dans chaque métier) ──
-  const groupes = useMemo(() => {
-    if (!data) return [];
-    const map = {};
-    data.personnel.forEach((p) => {
-      const cle = normaliserPoste(p.poste);
-      if (!map[cle]) map[cle] = [];
-      map[cle].push(p);
-    });
-    Object.keys(map).forEach((cle) => {
-      map[cle].sort((a, b) => {
-        const aChef = a.poste.toLowerCase().startsWith("chef ") ? 0 : 1;
-        const bChef = b.poste.toLowerCase().startsWith("chef ") ? 0 : 1;
-        return aChef - bChef;
-      });
-    });
-    return Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
-  }, [data]);
+  // Le regroupement par corps de métier est fait côté backend (PointageHelper::grouperParMetier)
+  const groupes = data?.groupes ?? [];
 
   const ouvrierVisible = (nom) =>
     !recherche.trim() ||
@@ -185,7 +171,7 @@ export default function FicheJour() {
       </div>
     );
 
-  if (data.personnel.length === 0) {
+  if (groupes.every((g) => g.personnel.length === 0)) {
     return (
       <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
         <p className="text-slate-400 text-sm">
@@ -248,7 +234,7 @@ export default function FicheJour() {
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 pl-2 border-l border-slate-200">
             Total :{" "}
             <span className="font-bold text-slate-800">
-              {data.personnel.length}
+              {Object.keys(lignes).length}
             </span>
           </div>
         </div>
@@ -304,155 +290,157 @@ export default function FicheJour() {
 
       {/* Groupes par métier */}
       <div className="space-y-3">
-        {groupes.map(([libelleGroupe, personnesGroupe]) => {
-          if (!groupeVisible(personnesGroupe)) return null;
-          const ids = personnesGroupe.map((p) => p.id);
-          const isOpen = groupesOuverts[libelleGroupe] ?? false
-          const presents = ids.filter(
-            (id) => lignes[id]?.statutPointage === "present",
-          ).length;
-          const absents = ids.filter(
-            (id) => lignes[id]?.statutPointage === "absent",
-          ).length;
+        {groupes.map(
+          ({ famille: libelleGroupe, personnel: personnesGroupe }) => {
+            if (!groupeVisible(personnesGroupe)) return null;
+            const ids = personnesGroupe.map((p) => p.id);
+            const isOpen = groupesOuverts[libelleGroupe] ?? false;
+            const presents = ids.filter(
+              (id) => lignes[id]?.statutPointage === "present",
+            ).length;
+            const absents = ids.filter(
+              (id) => lignes[id]?.statutPointage === "absent",
+            ).length;
 
-          return (
-            <div
-              key={libelleGroupe}
-              className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"
-            >
+            return (
               <div
-                onClick={() =>
-                  setGroupesOuverts((prev) => ({
-                    ...prev,
-                    [libelleGroupe]: !isOpen,
-                  }))
-                }
-                className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between cursor-pointer hover:bg-slate-100/80 transition-colors select-none"
+                key={libelleGroupe}
+                className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"
               >
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <svg
-                    className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                  <h3 className="font-bold text-slate-800 text-sm">
-                    {libelleGroupe}
-                  </h3>
-                  <div className="flex items-center gap-1.5 ml-1">
-                    <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-md text-[11px] font-bold">
-                      Total : {ids.length}
-                    </span>
-                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md text-[11px] font-semibold">
-                      {presents} P
-                    </span>
-                    <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded-md text-[11px] font-semibold">
-                      {absents} A
-                    </span>
+                <div
+                  onClick={() =>
+                    setGroupesOuverts((prev) => ({
+                      ...prev,
+                      [libelleGroupe]: !isOpen,
+                    }))
+                  }
+                  className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between cursor-pointer hover:bg-slate-100/80 transition-colors select-none"
+                >
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <svg
+                      className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                    <h3 className="font-bold text-slate-800 text-sm">
+                      {libelleGroupe}
+                    </h3>
+                    <div className="flex items-center gap-1.5 ml-1">
+                      <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-md text-[11px] font-bold">
+                        Total : {ids.length}
+                      </span>
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-md text-[11px] font-semibold">
+                        {presents} P
+                      </span>
+                      <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded-md text-[11px] font-semibold">
+                        {absents} A
+                      </span>
+                    </div>
                   </div>
+
+                  {data.modifiable && (
+                    <div
+                      className="flex items-center gap-1.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => tousPresentsGroupe(ids)}
+                        className="text-[11px] text-emerald-700 hover:bg-emerald-100/60 px-2 py-1 rounded transition-colors font-medium"
+                      >
+                        + Tous présents
+                      </button>
+                      <span className="text-slate-300">|</span>
+                      <button
+                        onClick={() => tousAbsentsGroupe(ids)}
+                        className="text-[11px] text-rose-700 hover:bg-rose-100/60 px-2 py-1 rounded transition-colors font-medium"
+                      >
+                        - Tous absents
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                {data.modifiable && (
-                  <div
-                    className="flex items-center gap-1.5"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={() => tousPresentsGroupe(ids)}
-                      className="text-[11px] text-emerald-700 hover:bg-emerald-100/60 px-2 py-1 rounded transition-colors font-medium"
-                    >
-                      + Tous présents
-                    </button>
-                    <span className="text-slate-300">|</span>
-                    <button
-                      onClick={() => tousAbsentsGroupe(ids)}
-                      className="text-[11px] text-rose-700 hover:bg-rose-100/60 px-2 py-1 rounded transition-colors font-medium"
-                    >
-                      - Tous absents
-                    </button>
+                {isOpen && (
+                  <div className="divide-y divide-slate-100">
+                    {personnesGroupe.map((p) => {
+                      if (!ouvrierVisible(p.nomComplet)) return null;
+                      const ligne = lignes[p.id];
+                      const isPresent = ligne?.statutPointage === "present";
+                      return (
+                        <div
+                          key={p.id}
+                          className={`p-3 sm:px-4 flex items-center justify-between gap-3 transition-colors ${isPresent ? "bg-emerald-50/30" : ""}`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={`text-sm font-semibold transition-colors ${isPresent ? "text-slate-900" : "text-slate-500"}`}
+                            >
+                              {p.nomComplet}
+                            </p>
+                            <p className="text-xs text-slate-400 truncate">
+                              {p.poste}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            {isPresent && (
+                              <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
+                                <button
+                                  disabled={!data.modifiable}
+                                  onClick={() => decrementHSup(p.id)}
+                                  className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-white rounded-md text-sm font-bold transition-colors disabled:opacity-50"
+                                >
+                                  −
+                                </button>
+                                <div className="px-2 text-center min-w-[3rem]">
+                                  <span className="text-xs font-bold text-slate-800">
+                                    {ligne.heures_sup || 0} h
+                                  </span>
+                                </div>
+                                <button
+                                  disabled={!data.modifiable}
+                                  onClick={() => incrementHSup(p.id)}
+                                  className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-white rounded-md text-sm font-bold transition-colors disabled:opacity-50"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            )}
+
+                            <div className="inline-flex p-0.5 bg-slate-100 rounded-lg border border-slate-200 text-xs font-bold">
+                              <button
+                                disabled={!data.modifiable}
+                                onClick={() => setStatut(p.id, "present")}
+                                className={`px-3 py-1.5 rounded-md transition-all ${isPresent ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+                              >
+                                Présent
+                              </button>
+                              <button
+                                disabled={!data.modifiable}
+                                onClick={() => setStatut(p.id, "absent")}
+                                className={`px-3 py-1.5 rounded-md transition-all ${!isPresent ? "bg-rose-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+                              >
+                                Absent
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-
-              {isOpen && (
-                <div className="divide-y divide-slate-100">
-                  {personnesGroupe.map((p) => {
-                    if (!ouvrierVisible(p.nomComplet)) return null;
-                    const ligne = lignes[p.id];
-                    const isPresent = ligne?.statutPointage === "present";
-                    return (
-                      <div
-                        key={p.id}
-                        className={`p-3 sm:px-4 flex items-center justify-between gap-3 transition-colors ${isPresent ? "bg-emerald-50/30" : ""}`}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className={`text-sm font-semibold transition-colors ${isPresent ? "text-slate-900" : "text-slate-500"}`}
-                          >
-                            {p.nomComplet}
-                          </p>
-                          <p className="text-xs text-slate-400 truncate">
-                            {p.poste}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          {isPresent && (
-                            <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
-                              <button
-                                disabled={!data.modifiable}
-                                onClick={() => decrementHSup(p.id)}
-                                className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-white rounded-md text-sm font-bold transition-colors disabled:opacity-50"
-                              >
-                                −
-                              </button>
-                              <div className="px-2 text-center min-w-[3rem]">
-                                <span className="text-xs font-bold text-slate-800">
-                                  {ligne.heures_sup || 0} h
-                                </span>
-                              </div>
-                              <button
-                                disabled={!data.modifiable}
-                                onClick={() => incrementHSup(p.id)}
-                                className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-white rounded-md text-sm font-bold transition-colors disabled:opacity-50"
-                              >
-                                +
-                              </button>
-                            </div>
-                          )}
-
-                          <div className="inline-flex p-0.5 bg-slate-100 rounded-lg border border-slate-200 text-xs font-bold">
-                            <button
-                              disabled={!data.modifiable}
-                              onClick={() => setStatut(p.id, "present")}
-                              className={`px-3 py-1.5 rounded-md transition-all ${isPresent ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
-                            >
-                              Présent
-                            </button>
-                            <button
-                              disabled={!data.modifiable}
-                              onClick={() => setStatut(p.id, "absent")}
-                              className={`px-3 py-1.5 rounded-md transition-all ${!isPresent ? "bg-rose-600 text-white shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
-                            >
-                              Absent
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+          },
+        )}
       </div>
 
       <div className="flex justify-end pt-2">
@@ -465,8 +453,4 @@ export default function FicheJour() {
       </div>
     </div>
   );
-}
-
-function normaliserPoste(libellePoste) {
-  return libellePoste.replace(/^chef\s+/i, "").trim();
 }
